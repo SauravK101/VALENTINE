@@ -95,7 +95,7 @@
         }
 
         #yesBtn:hover {
-            transform: translate(-50%, -50%) scale(1.05);
+            filter: brightness(1.1);
         }
 
         #noBtn {
@@ -193,22 +193,20 @@
         let yesBtnScale = 1;
         let hasMovedAway = false;
 
-        // Make No button run away from mouse
-        noBtn.addEventListener('mousemove', function(e) {
+        // Function to handle No button evasion logic
+        function handleNoButtonEvasion(x, y) {
             const btnRect = noBtn.getBoundingClientRect();
             const containerRect = container.getBoundingClientRect();
             
-            const mouseX = e.clientX;
-            const mouseY = e.clientY;
             const btnCenterX = btnRect.left + btnRect.width / 2;
             const btnCenterY = btnRect.top + btnRect.height / 2;
             
             const distance = Math.sqrt(
-                Math.pow(mouseX - btnCenterX, 2) + 
-                Math.pow(mouseY - btnCenterY, 2)
+                Math.pow(x - btnCenterX, 2) + 
+                Math.pow(y - btnCenterY, 2)
             );
             
-            // If mouse is too close, move the button
+            // If mouse/touch is too close, move the button
             if (distance < 100) {
                 // Only count as a new attempt if button actually moves away
                 if (!hasMovedAway) {
@@ -218,6 +216,7 @@
                     // Grow the Yes button bigger
                     yesBtnScale += 0.2;
                     yesBtn.style.transform = `translate(-50%, -50%) scale(${yesBtnScale})`;
+                    yesBtn.style.transition = 'transform 0.3s ease';
                     
                     // Change button text to make it more playful
                     const messages = [
@@ -254,10 +253,32 @@
                 noBtn.style.top = newY + 'px';
                 noBtn.style.transform = 'translate(0, 0)';
             }
+        }
+
+        // Mouse event for desktop
+        noBtn.addEventListener('mousemove', function(e) {
+            handleNoButtonEvasion(e.clientX, e.clientY);
         });
 
-        // Reset hasMovedAway when mouse leaves the button area
+        // Touch event for mobile
+        noBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            handleNoButtonEvasion(touch.clientX, touch.clientY);
+        });
+
+        noBtn.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            handleNoButtonEvasion(touch.clientX, touch.clientY);
+        });
+
+        // Reset hasMovedAway when mouse/touch leaves the button area
         noBtn.addEventListener('mouseleave', function() {
+            hasMovedAway = false;
+        });
+
+        noBtn.addEventListener('touchend', function() {
             hasMovedAway = false;
         });
 
